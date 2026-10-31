@@ -83,6 +83,7 @@ const KEY = "treinoPesado.v1";
 let S = {cardioMin:20, sessions:{}, cardio:{}, peso:52, altura:150, idade:20, cfgV:2, alt:{}, notes:{}};
 try{ const raw = localStorage.getItem(KEY); if(raw) S = Object.assign(S, JSON.parse(raw)); }catch(e){}
 if(S.cfgV !== 2){ S.cardioMin = 20; S.cfgV = 2; }
+S.alt = S.alt || {}; S.notes = S.notes || {}; S.sessions = S.sessions || {}; S.cardio = S.cardio || {};
 const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} };
 
 const pad = n => String(n).padStart(2,"0");
@@ -198,8 +199,8 @@ const P = {
  cablecrunch:{seg:[...SIDE],cable:[112,2,"w"],A:{h:[108,42],s:[104,60],hip:[100,108],k:[100,150],a:[70,150],e:[118,58],w:[110,46]},B:{h:[148,112],s:[136,100],e:[146,96],w:[146,112]},cap:"Enrole o tronco, o quadril fica parado"}
 };
 const EXP = {"puxada":"pulldown","puxada-neutra":"pulldown","remada-sentada":"rowcable","remada-uni":"rowdb","remada-uni-c":"rowdb","remada-halteres":"rowdb","crucifixo-inv":"lateral","rosca-halter":"curl","rosca-martelo":"curl","rosca-w":"curlbar","prancha":"plank","prancha-lat":"sideplank","leg-press":"legpress","leg-press-c":"legpress","smith":"squat","bulgaro":"bulgarian","bulgaro-c":"bulgarian","extensora":"extension","elev-pelvica":"hipthrust","elev-pelvica-b":"hipthrust","abdutora":"abduction","abdutora-b":"abduction","abdutora-c":"abduction","supino":"press","supino-incl":"incline","elev-lat":"lateral","triceps-corda":"pushdown","triceps-corda-c":"pushdown","triceps-uni":"pushdown","triceps-coice":"kickback","elev-pernas":"legraise","rdl":"hinge","flexao-pe":"kneecurl","flexao-pe-c":"kneecurl","coice":"glutekick","coice-c":"glutekick","ponte":"bridge","abd-polia":"cablecrunch","dead-bug":"deadbug","panturrilha":"calf","flexora":"kneecurl","pantu-sent":"calf"};
-function animSVG(exId, over){
-  if(VIDEOS[exId]) return `<figure class="anim"><video src="/videos/${VIDEOS[exId]}" autoplay loop muted playsinline preload="metadata" style="width:100%;border-radius:8px;display:block"></video><figcaption><span class="live">Vídeo</span>${PLAN_NAME(exId)}</figcaption></figure>`;
+function animSVG(exId, over, nomeAtual){
+  if(VIDEOS[exId]) return `<figure class="anim"><video src="/videos/${VIDEOS[exId]}" autoplay loop muted playsinline preload="metadata" style="width:100%;border-radius:8px;display:block"></video><figcaption><span class="live">Vídeo</span>${nomeAtual || PLAN_NAME(exId)}</figcaption></figure>`;
   const k = over || EXP[exId]; if(!k || !P[k]) return "";
   return `<figure class="anim"><svg viewBox="0 0 200 160" data-anim="${k}" role="img" aria-label="Demonstração animada: ${P[k].cap}"></svg><figcaption><span class="live">Demonstração</span>${P[k].cap}</figcaption></figure>`;
 }
@@ -301,7 +302,7 @@ function viewHoje(){
     return `<details class="ex ${done?"done":""}" data-exid="${ex.id}" ${openEx===ex.id?"open":""}>
       <summary><span class="idx">${i+1}</span><span class="t"><b>${cx.nome}</b>${cx.isAlt?' <span class="pill acc" style="font-size:10px">alternativa</span>':""}<span class="num">${ex.series} × ${repsTxt(cx)} · descanso ${restTxt(ex.desc)}</span></span><span class="pill ${done?"ok":""} num">${okN}/${ex.series}</span></summary>
       <div class="body">
-        ${animSVG(ex.id, cx.animId)}
+        ${animSVG(ex.id, cx.animId, cx.nome)}
         ${cx.hasAlt?`<button class="btn sm swap" type="button" data-alt="${ex.id}">${cx.isAlt?"↩ Voltar ao exercício original":"⇄ Trocar por alternativa"}</button>`:""}
         <div class="demo">${bodySVG(cx.musc)}<div><div class="eyebrow" style="margin-bottom:6px">${cx.musc.map(k=>MUSC_PT[k]).join(" · ")}</div><ol>${cx.dicas.map(d=>`<li>${d}</li>`).join("")}</ol></div></div>
         ${cx.ombro?`<div class="tip hold"><b>Ombro direito:</b> ${cx.ombro}</div>`:""}
@@ -440,7 +441,7 @@ app.addEventListener("click", e => {
   if(e.target.id === "bk-copy"){ const ta = document.getElementById("bk");
     navigator.clipboard?.writeText(ta.value).then(()=>{e.target.textContent="Copiado"}).catch(()=>{ta.select();e.target.textContent="Selecionado, copie manualmente"}) ?? ta.select(); return; }
   if(e.target.id === "bk-load"){ const msg = document.getElementById("bk-msg");
-    try{ const d = JSON.parse(document.getElementById("bk-in").value); if(!d.sessions) throw 0; S = Object.assign(S,d); save(); render(); }
+    try{ const d = JSON.parse(document.getElementById("bk-in").value); if(!d.sessions) throw 0; S = Object.assign(S,d); S.alt = S.alt || {}; S.notes = S.notes || {}; S.sessions = S.sessions || {}; S.cardio = S.cardio || {}; save(); render(); }
     catch(_){ msg.textContent = "Esse texto não é um backup válido. Cole o código completo copiado do app."; } return; }
 });
 app.addEventListener("toggle", e => { if(e.target.matches("details.ex") && e.target.open) openEx = e.target.dataset.exid; }, true);
