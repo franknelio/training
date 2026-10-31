@@ -32,10 +32,11 @@ const PLAN = {
  4:{nome:"Posteriores de coxa e glúteos",tipo:"Inferiores B",cardio:LO_CARDIO,ex:[
   E("rdl","Levantamento terra romeno com halteres",4,[8,12],90,["ham","glute","lowback"],["Joelhos levemente dobrados e fixos.","Leve o quadril para trás, halteres rentes às pernas.","Desça até sentir o posterior alongar, coluna reta.","Suba empurrando o quadril para frente."],"levantamento terra romeno halteres"),
   E("elev-pelvica-b","Elevação pélvica",4,[8,12],90,["glute","ham"],["Costas no banco, carga sobre o quadril.","Pés afastados, canelas verticais no topo.","Segure 2 segundos em cima apertando o glúteo."],"elevação pélvica barra execução"),
-  E("flexao-pe","Flexão de joelho em pé com caneleira",3,[12,15],60,["ham"],["Segure em um apoio, tronco firme.","Leve o calcanhar em direção ao glúteo.","Desça devagar. Substitui a mesa flexora.","Sem caneleira, use elástico ou faça sem carga."],"flexão de joelho em pé caneleira",true),
+  E("flexora","Mesa flexora (deitada)",4,[10,12],60,["ham"],["Quadril colado no apoio, pernas travadas.","Puxe os calcanhares em direção ao glúteo.","Desça em 3 segundos, sem tirar o quadril do banco."],"mesa flexora deitada execução"),
   E("coice","Coice de glúteo na polia",3,[12,15],45,["glute"],["Tornozeleira na polia baixa.","Tronco inclinado, abdômen firme.","Leve a perna para trás sem arquear a lombar."],"coice glúteo polia",true),
   E("abdutora-b","Cadeira abdutora",3,[15,20],45,["glute"],["Tronco inclinado à frente.","Abra forte e volte em 2 segundos.","Segure 1 segundo aberta na última rep."],"cadeira abdutora glúteo"),
-  E("ponte","Ponte de glúteos no chão",3,[15,20],60,["glute"],["Deitada, pés próximos ao glúteo.","Suba apertando o glúteo, sem arquear a lombar.","Finalizador: vá até queimar. Para progredir, coloque um halter no quadril."],"ponte de glúteos no chão")
+  E("ponte","Ponte de glúteos no chão",3,[15,20],60,["glute"],["Deitada, pés próximos ao glúteo.","Suba apertando o glúteo, sem arquear a lombar.","Finalizador: vá até queimar. Para progredir, coloque um halter no quadril."],"ponte de glúteos no chão"),
+  E("pantu-sent","Panturrilha sentada",4,[15,20],45,["calf"],["Amplitude total: desça bem o calcanhar.","Pausa embaixo e em cima.","Ritmo controlado, sem quicar."],"panturrilha sentada máquina")
  ]},
  5:{nome:"Costas, bíceps, tríceps e abdômen",tipo:"Superiores C",cardio:UP_CARDIO,ex:[
   E("puxada-neutra","Puxada alta com pegada neutra",4,[10,12],75,["back","biceps"],["Barra de pegada neutra (triângulo ou paralela).","Puxe até a parte de cima do peito.","Ombros para baixo, longe das orelhas."],"puxada alta pegada neutra",false,"A pegada neutra é a mais amigável para o ombro. Se doer em cima, não estenda o braço por completo."),
@@ -56,12 +57,30 @@ const PLAN = {
   E("panturrilha","Panturrilha em pé com halteres",4,[12,20],45,["calf"],["Ponta dos pés em um degrau.","Desça o calcanhar o máximo possível.","Suba e segure 1 segundo em cima."],"panturrilha em pé halteres degrau",false,"Se segurar o halter incomodar o ombro direito, segure só na mão esquerda e apoie a direita na parede, ou use a máquina.")
  ]}
 };
+/* ---------- ALTERNATIVAS (botão de troca por exercício) ---------- */
+const ALT = {
+ smith:{nome:"Agachamento goblet com halter",anim:"goblet",dicas:["Segure um halter junto ao peito, cotovelos para baixo.","Desça entre os joelhos, tronco ereto.","Suba empurrando o chão com o pé inteiro."],ombro:"Sem barra nas costas: bem mais amigável ao ombro."},
+ puxada:{nome:"Puxada alta com pegada neutra",anim:"pulldown",dicas:["Barra de pegada neutra (triângulo ou paralela).","Puxe até a parte de cima do peito.","Ombros para baixo, longe das orelhas."],ombro:"Pegada neutra é a mais confortável para o ombro."},
+ "prancha-lat":{nome:"Dead bug",anim:"deadbug",musc:["abs"],dicas:["Deitada, lombar colada no chão.","Estenda o braço e a perna opostos devagar.","Alterne os lados sem arquear a lombar."],ombro:"Não apoia no braço, então não carrega o ombro."},
+ prancha:{nome:"Prancha com apoio no banco",anim:"plank",dicas:["Antebraços sobre um banco, corpo inclinado.","Linha reta da cabeça aos calcanhares.","Glúteo e abdômen firmes."],ombro:"Apoio elevado reduz bastante a carga no ombro."},
+ supino:{nome:"Supino com halteres (pegada neutra)",anim:"press",dicas:["Palmas viradas uma para a outra.","Desça só até a linha do peito.","Cotovelos a 45° do corpo."],ombro:"Pegada neutra e amplitude curta poupam o ombro."},
+ "supino-incl":{nome:"Crucifixo na máquina (peck deck)",anim:"lateral",dicas:["Sente com as costas apoiadas.","Feche os braços apertando o peito.","Abra devagar sem forçar o ombro."],ombro:"A máquina guia o movimento e evita amplitude dolorosa."},
+ "elev-lat":{nome:"Elevação lateral na polia baixa",anim:"lateral",dicas:["Polia baixa ao lado do corpo.","Suba até a altura do ombro, com amplitude menor.","Muito controle, sem impulso."],ombro:"Amplitude menor e tensão constante, melhor para a bursite."},
+ "crucifixo-inv":{nome:"Crucifixo inverso na máquina",anim:"lateral",dicas:["Sente de frente para o apoio.","Abra os braços até a linha do corpo.","Movimento curto e controlado."],ombro:"A máquina guia o movimento, poupando o ombro."},
+ flexora:{nome:"Flexão de joelho em pé com caneleira",anim:"kneecurl",dicas:["Segure num apoio, tronco firme.","Leve o calcanhar em direção ao glúteo.","Volte devagar. Use quando não houver mesa flexora."]},
+ "flexao-pe-c":{nome:"Mesa flexora (deitada)",anim:"kneecurl",dicas:["Quadril colado no apoio.","Puxe os calcanhares até o glúteo.","Desça em 3 segundos."]}
+};
+function curEx(ex){
+  const a = S.alt[ex.id] && ALT[ex.id];
+  if(a) return {id:ex.id,series:ex.series,reps:ex.reps,desc:ex.desc,un:ex.un,lado:ex.lado,nome:a.nome,musc:a.musc||ex.musc,dicas:a.dicas,ombro:a.ombro,animId:a.anim,isAlt:true,hasAlt:true};
+  return {id:ex.id,series:ex.series,reps:ex.reps,desc:ex.desc,un:ex.un,lado:ex.lado,nome:ex.nome,musc:ex.musc,dicas:ex.dicas,ombro:ex.ombro,animId:EXP[ex.id],isAlt:false,hasAlt:!!ALT[ex.id]};
+}
 const DIAS = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
 const DIAS_LONGO = ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
 
 /* ---------- ESTADO ---------- */
 const KEY = "treinoPesado.v1";
-let S = {cardioMin:20, sessions:{}, cardio:{}, peso:52, altura:150, idade:20, cfgV:2};
+let S = {cardioMin:20, sessions:{}, cardio:{}, peso:52, altura:150, idade:20, cfgV:2, alt:{}, notes:{}};
 try{ const raw = localStorage.getItem(KEY); if(raw) S = Object.assign(S, JSON.parse(raw)); }catch(e){}
 if(S.cfgV !== 2){ S.cardioMin = 20; S.cfgV = 2; }
 const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} };
@@ -81,13 +100,18 @@ function lastSession(exId, beforeDate){
   const d = ds[ds.length-1]; return {date:d, sets:S.sessions[d][exId].filter(s=>s&&s.ok)};
 }
 function suggestion(ex, last){
-  if(!last) return {cls:"", txt:"Primeira vez: escolha uma carga em que a última repetição seja difícil, sobrando 1 ou 2 no tanque."};
+  if(!last) return {cls:"", txt:"Primeira vez: escolha uma carga em que a última repetição seja difícil, sobrando 1 ou 2 no tanque (RIR 1–2)."};
   const [lo,hi] = ex.reps;
   const kg = Math.max(...last.sets.map(s => parseFloat(String(s.kg).replace(",","."))||0));
   const allTop = last.sets.length >= ex.series && last.sets.every(s => (+s.r||0) >= hi);
   const anyLow = last.sets.some(s => (+s.r||0) < lo);
+  const rirs = last.sets.map(s => s.rir).filter(v => v!=null && v!=="").map(Number);
   const inc = ["leg-press","leg-press-c","smith","rdl","elev-pelvica","elev-pelvica-b","remada-sentada","puxada"].includes(ex.id) ? 2.5 : 1;
-  if(allTop) return {cls:"up", txt:`Você bateu ${hi} reps em todas as séries. Suba para ${fmtKg(+(kg+inc).toFixed(1))} kg hoje (+${fmtKg(inc)} kg).`};
+  if(allTop){
+    if(rirs.length && rirs.some(v => v<=0)) return {cls:"", txt:`Bateu ${hi} reps, mas sem sobra (RIR 0) em alguma série. Repita ${fmtKg(kg)} kg e só suba quando sobrar 1 a 2 reps.`};
+    if(rirs.length && rirs.every(v => v>=2)) return {cls:"up", txt:`Bateu ${hi} reps sobrando 2+ no tanque. Pode subir com folga: ${fmtKg(+(kg+inc).toFixed(1))} kg (+${fmtKg(inc)} kg).`};
+    return {cls:"up", txt:`Você bateu ${hi} reps em todas as séries. Suba para ${fmtKg(+(kg+inc).toFixed(1))} kg hoje (+${fmtKg(inc)} kg).`};
+  }
   if(anyLow) return {cls:"hold", txt:`Ficou abaixo de ${lo} reps em alguma série. Mantenha ${fmtKg(kg)} kg e capriche no descanso.`};
   return {cls:"", txt:`Mantenha ${fmtKg(kg)} kg e tente +1 repetição por série até chegar a ${hi}.`};
 }
@@ -173,10 +197,10 @@ const P = {
  deadbug:{seg:[...SIDE,["hip","k2"],["k2","a2"],["s","e2"],["e2","w2"]],A:{h:[134,140],s:[116,146],hip:[74,146],k:[74,116],a:[48,116],k2:[76,118],a2:[50,118],e:[116,124],w:[116,102],e2:[118,124],w2:[118,102]},B:{k:[46,142],a:[18,140],e:[136,132],w:[158,140]},cap:"Estenda braço e perna opostos devagar"},
  cablecrunch:{seg:[...SIDE],cable:[112,2,"w"],A:{h:[108,42],s:[104,60],hip:[100,108],k:[100,150],a:[70,150],e:[118,58],w:[110,46]},B:{h:[148,112],s:[136,100],e:[146,96],w:[146,112]},cap:"Enrole o tronco, o quadril fica parado"}
 };
-const EXP = {"puxada":"pulldown","puxada-neutra":"pulldown","remada-sentada":"rowcable","remada-uni":"rowdb","remada-uni-c":"rowdb","remada-halteres":"rowdb","crucifixo-inv":"lateral","rosca-halter":"curl","rosca-martelo":"curl","rosca-w":"curlbar","prancha":"plank","prancha-lat":"sideplank","leg-press":"legpress","leg-press-c":"legpress","smith":"squat","bulgaro":"bulgarian","bulgaro-c":"bulgarian","extensora":"extension","elev-pelvica":"hipthrust","elev-pelvica-b":"hipthrust","abdutora":"abduction","abdutora-b":"abduction","abdutora-c":"abduction","supino":"press","supino-incl":"incline","elev-lat":"lateral","triceps-corda":"pushdown","triceps-corda-c":"pushdown","triceps-uni":"pushdown","triceps-coice":"kickback","elev-pernas":"legraise","rdl":"hinge","flexao-pe":"kneecurl","flexao-pe-c":"kneecurl","coice":"glutekick","coice-c":"glutekick","ponte":"bridge","abd-polia":"cablecrunch","dead-bug":"deadbug","panturrilha":"calf"};
-function animSVG(exId){
+const EXP = {"puxada":"pulldown","puxada-neutra":"pulldown","remada-sentada":"rowcable","remada-uni":"rowdb","remada-uni-c":"rowdb","remada-halteres":"rowdb","crucifixo-inv":"lateral","rosca-halter":"curl","rosca-martelo":"curl","rosca-w":"curlbar","prancha":"plank","prancha-lat":"sideplank","leg-press":"legpress","leg-press-c":"legpress","smith":"squat","bulgaro":"bulgarian","bulgaro-c":"bulgarian","extensora":"extension","elev-pelvica":"hipthrust","elev-pelvica-b":"hipthrust","abdutora":"abduction","abdutora-b":"abduction","abdutora-c":"abduction","supino":"press","supino-incl":"incline","elev-lat":"lateral","triceps-corda":"pushdown","triceps-corda-c":"pushdown","triceps-uni":"pushdown","triceps-coice":"kickback","elev-pernas":"legraise","rdl":"hinge","flexao-pe":"kneecurl","flexao-pe-c":"kneecurl","coice":"glutekick","coice-c":"glutekick","ponte":"bridge","abd-polia":"cablecrunch","dead-bug":"deadbug","panturrilha":"calf","flexora":"kneecurl","pantu-sent":"calf"};
+function animSVG(exId, over){
   if(VIDEOS[exId]) return `<figure class="anim"><video src="/videos/${VIDEOS[exId]}" autoplay loop muted playsinline preload="metadata" style="width:100%;border-radius:8px;display:block"></video><figcaption><span class="live">Vídeo</span>${PLAN_NAME(exId)}</figcaption></figure>`;
-  const k = EXP[exId]; if(!k) return "";
+  const k = over || EXP[exId]; if(!k || !P[k]) return "";
   return `<figure class="anim"><svg viewBox="0 0 200 160" data-anim="${k}" role="img" aria-label="Demonstração animada: ${P[k].cap}"></svg><figcaption><span class="live">Demonstração</span>${P[k].cap}</figcaption></figure>`;
 }
 function drawPose(svg, t){
@@ -252,28 +276,38 @@ function viewHoje(){
   }
   let doneEx = 0;
   const cards = p.ex.map((ex,i) => {
+    const cx = curEx(ex);
     const cur = sess(date, ex.id);
     const okN = cur.filter(s=>s&&s.ok).length;
     const done = okN >= ex.series; if(done) doneEx++;
     const last = lastSession(ex.id, date);
-    const sug = suggestion(ex, last);
+    const sug = suggestion(cx, last);
     const lastTxt = last ? `Última vez (${fmtDate(last.date)}): ${fmtKg(last.sets[0].kg)} kg × ${last.sets.map(s=>s.r).join(", ")}` : "Ainda sem registro deste exercício.";
+    const unit = cx.un ? "s" : "";
     const rows = Array.from({length:ex.series}, (_,j) => {
       const s = cur[j] || {}; const ls = last && last.sets[j];
-      return `<div class="set">
+      const rir = s.rir;
+      const rirChips = [0,1,2].map(v => `<button class="rir" type="button" data-rir="${ex.id}" data-i="${j}" data-v="${v}" aria-pressed="${String(rir)===String(v)}" aria-label="RIR ${v} na série ${j+1}">${v}</button>`).join("");
+      return `<div class="setgrp">
+        <div class="set">
         <span class="n">${j+1}</span>
         <input id="kg-${ex.id}-${j}" inputmode="decimal" placeholder="${ls?fmtKg(ls.kg):"kg"}" value="${s.kg??""}" data-ex="${ex.id}" data-i="${j}" data-f="kg" aria-label="Carga da série ${j+1} em kg">
         <input id="r-${ex.id}-${j}" inputmode="numeric" placeholder="${ex.reps[1]}" value="${s.r??""}" data-ex="${ex.id}" data-i="${j}" data-f="r" aria-label="Repetições da série ${j+1}">
         <button class="chk" type="button" data-ok="${ex.id}" data-i="${j}" aria-pressed="${!!s.ok}" aria-label="Concluir série ${j+1}">${ICON.check}</button>
+        </div>
+        <div class="setmeta"><span class="prev num">Anterior: ${ls?`${fmtKg(ls.kg)} kg × ${ls.r}${unit}`:"—"}</span><span class="rirbox" title="Repetições de reserva: quantas ainda sobraram no tanque"><span class="rirlbl">RIR</span>${rirChips}</span></div>
       </div>`;}).join("");
+    const nota = (S.notes[date] && S.notes[date][ex.id]) || "";
     return `<details class="ex ${done?"done":""}" data-exid="${ex.id}" ${openEx===ex.id?"open":""}>
-      <summary><span class="idx">${i+1}</span><span class="t"><b>${ex.nome}</b><span class="num">${ex.series} × ${repsTxt(ex)} · descanso ${restTxt(ex.desc)}</span></span><span class="pill ${done?"ok":""} num">${okN}/${ex.series}</span></summary>
+      <summary><span class="idx">${i+1}</span><span class="t"><b>${cx.nome}</b>${cx.isAlt?' <span class="pill acc" style="font-size:10px">alternativa</span>':""}<span class="num">${ex.series} × ${repsTxt(cx)} · descanso ${restTxt(ex.desc)}</span></span><span class="pill ${done?"ok":""} num">${okN}/${ex.series}</span></summary>
       <div class="body">
-        ${animSVG(ex.id)}
-        <div class="demo">${bodySVG(ex.musc)}<div><div class="eyebrow" style="margin-bottom:6px">${ex.musc.map(k=>MUSC_PT[k]).join(" · ")}</div><ol>${ex.dicas.map(d=>`<li>${d}</li>`).join("")}</ol></div></div>
-        ${ex.ombro?`<div class="tip hold"><b>Ombro direito:</b> ${ex.ombro}</div>`:""}
+        ${animSVG(ex.id, cx.animId)}
+        ${cx.hasAlt?`<button class="btn sm swap" type="button" data-alt="${ex.id}">${cx.isAlt?"↩ Voltar ao exercício original":"⇄ Trocar por alternativa"}</button>`:""}
+        <div class="demo">${bodySVG(cx.musc)}<div><div class="eyebrow" style="margin-bottom:6px">${cx.musc.map(k=>MUSC_PT[k]).join(" · ")}</div><ol>${cx.dicas.map(d=>`<li>${d}</li>`).join("")}</ol></div></div>
+        ${cx.ombro?`<div class="tip hold"><b>Ombro direito:</b> ${cx.ombro}</div>`:""}
         <div class="tip ${sug.cls}"><div style="font-weight:600;margin-bottom:2px">${lastTxt}</div>${sug.txt}</div>
-        <div class="sets"><div class="hd"><span style="text-align:center">Série</span><span style="text-align:center">kg</span><span style="text-align:center">${ex.un||"reps"}</span><span></span></div>${rows}</div>
+        <div class="sets"><div class="hd"><span style="text-align:center">Série</span><span style="text-align:center">kg</span><span style="text-align:center">${cx.un||"reps"}</span><span></span></div>${rows}</div>
+        <div class="notewrap"><label class="eyebrow" for="nota-${ex.id}">Nota / feedback (ombro, estalido, esforço)</label><textarea id="nota-${ex.id}" class="nota" data-nota="${ex.id}" rows="2" placeholder="Ex.: senti um leve incômodo no ombro na última série">${nota.replace(/</g,"&lt;")}</textarea></div>
       </div></details>`;
   }).join("");
   const c = S.cardio[date] || {};
@@ -376,6 +410,16 @@ app.addEventListener("click", e => {
   if(day){ selDay = +day.dataset.day; openEx = null; render(); return; }
   const go = e.target.closest("[data-go]");
   if(go){ selDay = +go.dataset.go; openEx = null; location.hash = "hoje"; render(); return; }
+  const alt = e.target.closest("[data-alt]");
+  if(alt){ const id = alt.dataset.alt; S.alt[id] = !S.alt[id]; save(); openEx = id; render(); return; }
+  const rir = e.target.closest("[data-rir]");
+  if(rir){
+    const date = dkey(dateForDay(selDay)), id = rir.dataset.rir, i = +rir.dataset.i, v = +rir.dataset.v;
+    S.sessions[date] ??= {}; S.sessions[date][id] ??= [];
+    const s = S.sessions[date][id][i] ??= {};
+    s.rir = (String(s.rir)===String(v)) ? "" : v;
+    save(); openEx = id; render(); return;
+  }
   const ok = e.target.closest("[data-ok]");
   if(ok){
     const date = dkey(dateForDay(selDay)), id = ok.dataset.ok, i = +ok.dataset.i;
@@ -407,6 +451,10 @@ app.addEventListener("input", e => {
     S.sessions[date] ??= {}; S.sessions[date][t.dataset.ex] ??= [];
     const s = S.sessions[date][t.dataset.ex][+t.dataset.i] ??= {};
     s[t.dataset.f] = t.value.replace(",", "."); save();
+  }
+  if(t.dataset.nota!=null && t.dataset.nota!==""){
+    const date = dkey(dateForDay(selDay));
+    S.notes[date] ??= {}; S.notes[date][t.dataset.nota] = t.value; save();
   }
   if(t.dataset.cfg){ const v = parseFloat(t.value.replace(",",".")); if(v>0){ S[t.dataset.cfg] = v; save(); } }
 });
