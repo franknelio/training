@@ -204,51 +204,87 @@ function animSVG(exId, over, nomeAtual){
   const k = over || EXP[exId]; if(!k || !P[k]) return "";
   return `<figure class="anim"><svg viewBox="0 0 200 160" data-anim="${k}" role="img" aria-label="Demonstração animada: ${P[k].cap}"></svg><figcaption><span class="live">Demonstração</span>${P[k].cap}</figcaption></figure>`;
 }
+// ——— utilidades de desenho do avatar (flat design / vector art) ———
+const _u = (u,v)=>{ const dx=v[0]-u[0], dy=v[1]-u[1], L=Math.hypot(dx,dy)||1; return [dx/L,dy/L]; };
+const _f = n => n[0].toFixed(1)+" "+n[1].toFixed(1);
+const _mix = (a,b,f)=>[a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f];
+// cápsula com raios diferentes nas pontas: tronco de cone + círculos nas juntas (fundem sem emenda)
+function capsule(u,v,r1,r2,fill){
+  const d=_u(u,v), px=-d[1], py=d[0];
+  const a=[u[0]+px*r1,u[1]+py*r1], b=[u[0]-px*r1,u[1]-py*r1];
+  const c=[v[0]-px*r2,v[1]-py*r2], e=[v[0]+px*r2,v[1]+py*r2];
+  return `<path d="M${_f(a)} L${_f(b)} L${_f(c)} L${_f(e)} Z" fill="${fill}"/>`
+    + `<circle cx="${u[0].toFixed(1)}" cy="${u[1].toFixed(1)}" r="${r1}" fill="${fill}"/>`
+    + `<circle cx="${v[0].toFixed(1)}" cy="${v[1].toFixed(1)}" r="${r2}" fill="${fill}"/>`;
+}
+const blob = (c,r,fill)=>`<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="${r}" fill="${fill}"/>`;
+
 function drawPose(svg, t){
   const p = P[svg.dataset.anim]; const A = p.A, B = p.B;
   const ease = x => x<.5 ? 2*x*x : 1-Math.pow(-2*x+2,2)/2;
   const e = ease(t);
   const pt = n => { const a = A[n], b = B[n] || a; return [a[0]+(b[0]-a[0])*e, a[1]+(b[1]-a[1])*e]; };
-  let s = `<line x1="0" y1="152" x2="200" y2="152" stroke="var(--line)" stroke-width="2"/>`;
-  if(p.bench){ const [x,y,w,h] = p.bench; s += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2" fill="var(--muted)" opacity=".45"/>`; }
-  if(p.cable){ const [cx,cy,to] = p.cable, q = pt(to); s += `<circle cx="${cx}" cy="${cy}" r="3" fill="var(--muted)"/><line x1="${cx}" y1="${cy}" x2="${q[0]}" y2="${q[1]}" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="3 3"/>`; }
-  if(p.band){ const a = pt(p.band[0]), b = pt(p.band[1]); s += `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="var(--warn)" stroke-width="3"/>`; }
+  const has = n => A[n] !== undefined;
   const front = p.seg.some(([a]) => a==="n");
-  const ARM = /^(e|w|el|wl|er|wr|e2|w2)$/, TOR = /^(s|hip|n|pm|pl|pr|sl|sr)$/;
-  const L = (u,v,c,w) => `<line x1="${u[0].toFixed(1)}" y1="${u[1].toFixed(1)}" x2="${v[0].toFixed(1)}" y2="${v[1].toFixed(1)}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
-  const legs = [], torso = [], arms = [];
-  p.seg.forEach(([a,b]) => {
-    if(a==="h") return;
-    const u = pt(a), v = pt(b);
-    if(ARM.test(a) || ARM.test(b)) arms.push(L(u,v,"var(--skin)", /^e/.test(a) ? 5.5 : 7));
-    else if(TOR.test(a) && TOR.test(b)){
-      const main = !front || (a==="n" && b==="pm");
-      const w = front ? (main ? 17 : 8) : 15;
-      torso.push(L(u,v,"var(--outfit)",w));
-      if(main){ const f = t => [u[0]+(v[0]-u[0])*t, u[1]+(v[1]-u[1])*t]; torso.push(L(f(.46),f(.66),"var(--skin)",w-3)); }
-    } else legs.push(L(u,v,"var(--outfit)", TOR.test(a) ? 11 : 8));
-  });
-  ["a","a2","fl","fr"].forEach(n => { if(A[n]){ const q = pt(n); legs.push(`<ellipse cx="${(q[0]+(front?0:4)).toFixed(1)}" cy="${(q[1]+1).toFixed(1)}" rx="${front?4:7}" ry="3.5" fill="var(--shoe)"/>`); } });
-  const hd = pt("h"), nk = pt(front ? "n" : "s");
-  const dx = nk[0]-hd[0], dy = nk[1]-hd[1], len = Math.hypot(dx,dy)||1, ux = dx/len, uy = dy/len;
-  const neck = L([hd[0]+ux*6,hd[1]+uy*6],[hd[0]+ux*13,hd[1]+uy*13],"var(--skin)",6);
-  const X = hd[0].toFixed(1), Y = hd[1].toFixed(1);
-  let head = `<circle cx="${X}" cy="${Y}" r="8.5" fill="var(--skin)"/>`;
+  const SK="var(--skin)", TOP="var(--top)", LEG="var(--legging)", HAIR="var(--hair)", SHOE="var(--shoe)", IRON="var(--iron)", HI="var(--hi)";
+
+  // chão + equipamentos ao fundo
+  let bg = `<line x1="0" y1="152" x2="200" y2="152" stroke="var(--line)" stroke-width="2"/>`;
+  if(p.bench){ const [x,y,w,h]=p.bench; bg += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="var(--muted)" opacity=".4"/>`; }
+  if(p.cable){ const [cx,cy,to]=p.cable, q=pt(to); bg += `<line x1="${cx}" y1="${cy}" x2="${q[0].toFixed(1)}" y2="${q[1].toFixed(1)}" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="3 3"/><circle cx="${cx}" cy="${cy}" r="3.5" fill="var(--muted)"/>`; }
+  if(p.band){ const a=pt(p.band[0]), b=pt(p.band[1]); bg += `<path d="M${_f(a)} Q${((a[0]+b[0])/2).toFixed(1)} ${((a[1]+b[1])/2+6).toFixed(1)} ${_f(b)}" stroke="var(--warn)" stroke-width="3" fill="none" stroke-linecap="round"/>`; }
+
+  const legSkin=(hp,kn,an)=> capsule(pt(hp),pt(kn),8.5,6,SK)+capsule(pt(kn),pt(an),6,4.3,SK);
+  const shoe=(an,toeN)=>{ const q=pt(an); if(toeN&&has(toeN)) return capsule(q,pt(toeN),4.2,3,SHOE); return `<ellipse cx="${(q[0]+(front?0:4)).toFixed(1)}" cy="${(q[1]+1).toFixed(1)}" rx="${front?4.5:7}" ry="4" fill="${SHOE}"/>`; };
+
+  let body="";
   if(front){
-    head += `<path d="M${hd[0]-9} ${hd[1]+1} a9 9 0 0 1 18 0 q-3 -6 -9 -6 q-6 0 -9 6z" fill="var(--hair)"/>`;
+    const sl=pt("sl"),sr=pt("sr"),pm=pt("pm"),pl=pt("pl"),pr=pt("pr");
+    const topC=_mix(sl,sr,.5), hipC=_mix(pl,pr,.5);
+    const rSh=9, rW=6.2, rHip=Math.max(Math.hypot(pr[0]-pl[0],pr[1]-pl[1])/2, 9)+2;
+    body += legSkin("pl","kl","fl")+legSkin("pr","kr","fr");
+    body += shoe("fl")+shoe("fr");
+    body += capsule(pl,_mix(pl,pt("kl"),.36),rHip*.6,6,LEG)+capsule(pr,_mix(pr,pt("kr"),.36),rHip*.6,6,LEG);
+    body += capsule(topC,pm,rSh,rW,TOP)+capsule(pm,hipC,rW,rHip,LEG);
+    body += capsule(topC,sl,4,3.2,TOP)+capsule(topC,sr,4,3.2,TOP)+blob(sl,5,TOP)+blob(sr,5,TOP);
+    const ta=_u(topC,pm); body += capsule([topC[0]-ta[1]*rSh*.4,topC[1]+ta[0]*rSh*.4],[pm[0]-ta[1]*rW*.3,pm[1]+ta[0]*rW*.3],2.4,1.3,HI);
   } else {
-    const rot = (Math.atan2(uy,ux)*180/Math.PI - 90).toFixed(1);
-    head += `<g transform="translate(${X} ${Y}) rotate(${rot})">
-      <path d="M-9 2 a9 9 0 0 1 17 -5 q-6 -1 -9 4 q-3 3 -8 1z" fill="var(--hair)"/>
-      <circle cx="-7" cy="-6" r="3.4" fill="var(--hair)"/>
-      <path d="M-8 -6 q-10 3 -8 17 q3 -5 3 -12z" fill="var(--hair)"/></g>`;
+    const s=pt("s"), hip=pt("hip"), waist=_mix(s,hip,.42);
+    if(has("k2")){ body += capsule(pt("hip"),pt("k2"),8,6,SK)+capsule(pt("k2"),pt("a2"),6,4.3,SK)+shoe("a2"); }
+    body += legSkin("hip","k","a")+shoe("a","toe");
+    body += capsule(hip,_mix(hip,pt("k"),.34),9,6.2,LEG);
+    if(has("k2")) body += capsule(hip,_mix(hip,pt("k2"),.34),9,6.2,LEG);
+    body += capsule(s,waist,8,5.6,TOP)+capsule(waist,hip,5.6,10,LEG);
+    const ta=_u(s,hip); body += capsule([s[0]-ta[1]*4,s[1]+ta[0]*4],[waist[0]-ta[1]*3,waist[1]+ta[0]*3],2.2,1.3,HI);
   }
-  s += legs.join("") + torso.join("") + neck + head + arms.join("");
-  [].concat(p.db||[]).forEach(n => { const q = pt(n); s += `<rect x="${q[0]-9}" y="${q[1]-4}" width="18" height="8" rx="3" fill="var(--iron)"/>`; });
-  [].concat(p.weight2||[]).forEach(n => { const q = pt(n); s += `<circle cx="${q[0]}" cy="${q[1]}" r="5" fill="var(--iron)"/>`; });
-  if(p.bar){ const q = pt(p.bar); s += `<line x1="${q[0]-4}" y1="${q[1]}" x2="${q[0]+4}" y2="${q[1]}" stroke="var(--iron)" stroke-width="10" stroke-linecap="round"/>`; }
-  if(p.plate){ const q = pt(p.plate); s += `<line x1="${q[0]-10}" y1="${q[1]-12}" x2="${q[0]+10}" y2="${q[1]+12}" stroke="var(--iron)" stroke-width="5" stroke-linecap="round"/>`; }
-  svg.innerHTML = s;
+
+  // pescoço, cabeça, cabelo e rabo de cavalo
+  const hd=pt("h"), nk=pt(front?"n":"s");
+  const dn=_u(hd,nk), ux=-dn[0], uy=-dn[1], sx=-uy, sy=ux, R=8.6;
+  body += capsule([hd[0]+dn[0]*6,hd[1]+dn[1]*6], nk, 3.4,3.8, SK);
+  const sw=(t-.5)*2;
+  const base=[hd[0]+ux*R*.5+sx*R*.3, hd[1]+uy*R*.5+sy*R*.3];
+  const mid=[base[0]-ux*5+sx*(sw*7-2), base[1]-uy*5+sy*(sw*7-2)];
+  const tip=[mid[0]-ux*7+sx*(sw*9-3), mid[1]-uy*7+sy*(sw*9-3)];
+  let head = capsule(base,mid,4.2,3.2,HAIR)+capsule(mid,tip,3.2,1.6,HAIR)+blob(base,4.6,HAIR);
+  head += blob([hd[0]-ux*1.2,hd[1]-uy*1.2],R+2,HAIR)+blob(hd,R,SK);
+  const cr=[hd[0]+ux*R*.55,hd[1]+uy*R*.55];
+  head += `<path d="M${(hd[0]-sx*R).toFixed(1)} ${(hd[1]-sy*R).toFixed(1)} Q${_f(cr)} ${(hd[0]+sx*R).toFixed(1)} ${(hd[1]+sy*R).toFixed(1)} Q${(hd[0]+ux*R*.3).toFixed(1)} ${(hd[1]+uy*R*.3).toFixed(1)} ${(hd[0]-sx*R).toFixed(1)} ${(hd[1]-sy*R).toFixed(1)} Z" fill="${HAIR}"/>`;
+  body += head;
+
+  // braços (na frente)
+  const arm=(sh,el,wr)=>{ let r=""; if(has(el)) r+=capsule(pt(sh),pt(el),5.4,4.2,SK)+blob(pt(sh),5.2,TOP); if(has(wr)) r+=capsule(pt(el),pt(wr),4.2,3.3,SK)+blob(pt(wr),3.6,SK); return r; };
+  if(front){ body += arm("sl","el","wl")+arm("sr","er","wr"); }
+  else { body += arm("s","e","w"); if(has("e2")) body += arm("s","e2","w2"); }
+
+  // equipamentos nas mãos (na frente)
+  let eq="";
+  [].concat(p.db||[]).forEach(n=>{ const q=pt(n); eq += `<rect x="${(q[0]-9).toFixed(1)}" y="${(q[1]-4.5).toFixed(1)}" width="18" height="9" rx="3.5" fill="${IRON}"/><circle cx="${(q[0]-7).toFixed(1)}" cy="${q[1].toFixed(1)}" r="5" fill="${IRON}"/><circle cx="${(q[0]+7).toFixed(1)}" cy="${q[1].toFixed(1)}" r="5" fill="${IRON}"/>`; });
+  [].concat(p.weight2||[]).forEach(n=>{ eq += blob(pt(n),5.5,IRON); });
+  if(p.bar){ const q=pt(p.bar); eq += `<line x1="${(q[0]-5).toFixed(1)}" y1="${q[1].toFixed(1)}" x2="${(q[0]+5).toFixed(1)}" y2="${q[1].toFixed(1)}" stroke="${IRON}" stroke-width="11" stroke-linecap="round"/>`; }
+  if(p.plate){ const q=pt(p.plate); eq += `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="11" fill="none" stroke="${IRON}" stroke-width="5"/>`; }
+
+  svg.innerHTML = bg + body + eq;
 }
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const CYCLE = 3200;
@@ -501,4 +537,5 @@ function tickCardio(){
 
 const PLAN_NAME = id => (Object.values(PLAN).flatMap(p=>p.ex).find(e=>e.id===id)||{}).nome||"";
 render();
+if(location.search.includes("qa")) window.__qa = { P, EXP, drawPose };
 if("serviceWorker" in navigator){ addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(()=>{})); }
